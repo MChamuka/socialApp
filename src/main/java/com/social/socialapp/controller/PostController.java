@@ -6,6 +6,7 @@ import com.social.socialapp.repository.PostRepository;
 import com.social.socialapp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/posts")
@@ -32,7 +33,7 @@ public class PostController {
         return "Post added successfully!";
     }
 
-    @PostMapping("/remove")
+    @DeleteMapping("/remove")
     public String removePost(@RequestParam Long userId, @RequestParam Long postId) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
@@ -50,6 +51,11 @@ public class PostController {
 
         postRepository.delete(post);
         return "Post deleted successfully!";
+    }
+
+    @GetMapping("/user/{userId}")
+    public List<Post> getPostsByUser(@PathVariable Long userId) {
+        return postRepository.findByUserId(userId);
     }
 
 }
