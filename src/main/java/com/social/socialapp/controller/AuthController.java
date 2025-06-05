@@ -1,10 +1,7 @@
 package com.social.socialapp.controller;
 
-import com.social.socialapp.model.LoginRequest;
 import com.social.socialapp.model.User;
 import com.social.socialapp.repository.UserRepository;
-import com.social.socialapp.util.JwtUtil;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -14,23 +11,39 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     @Autowired
-    private JwtUtil jwtUtil;
+    private UserRepository userRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @PostMapping("/login")
-    public String login(@RequestBody LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if (passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            return jwtUtil.generateToken(user.getEmail());
-        } else {
-            return "Invalid credentials";
+    // 👉 SIGNUP
+    @PostMapping("/signup")
+    public String registerUser(@RequestParam String username, @RequestParam String password) {
+        if (userRepository.findByUsername(username) != null) {
+            return "Username already exists!";
         }
+
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(passwordEncoder.encode(password));
+        userRepository.save(user);
+
+        return "User registered successfully!";
+    }
+
+    // 👉 LOGIN
+    @PostMapping("/login")
+    public String login(@RequestParam String username, @RequestParam String password) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            return "User not found!";
+        }
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            return "Invalid credentials!";
+        }
+
+        // Normally you'd return a JWT token here
+        return "Login successful!";
     }
 }
